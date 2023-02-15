@@ -31,17 +31,17 @@ public class StringVersion implements Version {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof StringVersion) {
-			return version.equals(((StringVersion) obj).version);
-		} else {
+	public boolean equals(Object other) {
+		if (!(other instanceof Version)) {
 			return false;
 		}
+
+		return VersionComparer.areEqual(this, (Version) other);
 	}
 
 	@Override
-	public int compareTo(Version o) {
-		return getFriendlyString().compareTo(o.getFriendlyString());
+	public int compareTo(Version other) {
+		return VersionComparer.compare(this, other);
 	}
 
 	@Override

@@ -4,6 +4,7 @@ plugins {
 	id 'maven-publish'
 	id 'checkstyle'
 	id 'com.diffplug.spotless' version '6.12.0'
+	id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 def ENV = System.getenv()
@@ -24,9 +25,23 @@ spotless {
 
 repositories {
 	mavenCentral()
+	maven {
+		name = 'FlexVer'
+		url = 'https://repo.sleeping.town/'
+	}
+}
+
+configurations {
+	include
+
+	implementation {
+		extendsFrom include
+	}
 }
 
 dependencies {
+	include "com.unascribed:flexver-java:${project.flexver_version}"
+
 	testImplementation("org.junit.jupiter:junit-jupiter:${project.junit_jupiter_version}")
 }
 
@@ -46,10 +61,35 @@ tasks.withType(JavaCompile).configureEach {
 	}
 }
 
+shadowJar {
+	// Has stupid defaults, make our own
+	enabled = false
+}
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+task fatJar(type: ShadowJar) {
+	from sourceSets.main.output
+
+	manifest {
+		attributes('Automatic-Module-Name': "${project.group}.${archivesBaseName}")
+	}
+
+	archiveClassifier = 'fat'
+	configurations = [project.configurations.include]
+
+	relocate 'com.unascribed.flexver', 'net.fabricmc.semver.impl.lib.flexver'
+
+	outputs.upToDateWhen { false }
+}
+
+build.dependsOn(fatJar)
+
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			artifact(jar)
+			artifact(fatJar)
 			artifact(sourcesJar)
 		}
 	}
