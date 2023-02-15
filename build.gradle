@@ -1,0 +1,69 @@
+plugins {
+	id 'java'
+	id 'java-library'
+	id 'maven-publish'
+	id 'checkstyle'
+	id 'com.diffplug.spotless' version '6.12.0'
+}
+
+def ENV = System.getenv()
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+checkstyle {
+	configFile = project.rootProject.file('checkstyle.xml')
+	toolVersion = project.checkstyle_tool_version
+}
+
+spotless {
+	java {
+		licenseHeaderFile(rootProject.file('HEADER'))
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	testImplementation("org.junit.jupiter:junit-jupiter:${project.junit_jupiter_version}")
+}
+
+test {
+	useJUnitPlatform()
+}
+
+java {
+	withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = 'UTF-8'
+
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = 8
+	}
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			artifact(jar)
+			artifact(sourcesJar)
+		}
+	}
+
+	repositories {
+		if (ENV.MAVEN_URL) {
+			maven {
+				name 'fabric'
+				url ENV.MAVEN_URL
+				credentials {
+					username ENV.MAVEN_USERNAME
+					password ENV.MAVEN_PASSWORD
+				}
+			}
+		}
+	}
+}
