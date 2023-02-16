@@ -42,7 +42,8 @@ configurations {
 dependencies {
 	include "com.unascribed:flexver-java:${project.flexver_version}"
 
-	testImplementation("org.junit.jupiter:junit-jupiter:${project.junit_jupiter_version}")
+	testCompileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
+	testImplementation "org.junit.jupiter:junit-jupiter:${project.junit_jupiter_version}"
 }
 
 test {
